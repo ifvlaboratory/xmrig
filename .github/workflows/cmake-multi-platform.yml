@@ -51,12 +51,8 @@ jobs:
 
     - name: Install dependencies (Linux)
       if: ${{ runner.os }} == 'Linux'
-      run: sudo apt install \
-           build-essential \
-           cmake \
-           automake \
-           libtool \
-           autoconf
+      run: sudo apt install build-essential cmake automake libtool autoconf
+
     - uses: msys2/setup-msys2@v2
       if: ${{ runner.os }} == 'Windows'
 
