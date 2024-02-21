@@ -48,9 +48,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    
-    # For Windows build
-    - uses: msys2/setup-msys2@v2
 
     - name: Install dependencies (Linux)
       if: ${{ runner.os }} == 'Linux'
@@ -60,7 +57,9 @@ jobs:
            automake \
            libtool \
            autoconf
-      
+    - uses: msys2/setup-msys2@v2
+      if: ${{ runner.os }} == 'Windows'
+
     - name: Install dependencies (Windows)
       if: ${{ runner.os }} == 'Windows'
       run: |
