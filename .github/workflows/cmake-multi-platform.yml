@@ -46,9 +46,6 @@ jobs:
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
-        exclude:
-          - os: ubuntu-latest
-            c_compiler: cl
 
     steps:
     - uses: actions/checkout@v3
@@ -81,15 +78,12 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: xmrig_${{ matrix.c_compiler }}-${{ runner.arch }}-${{ runner.os }}
+        name: xmrig_${{ matrix.c_compiler }}-${{ matrix.arch }}-${{ matrix.os }}
         path: ./build
         if-no-files-found: warn
         retention-days: 90
         compression-level: 0
         overwrite: false
-
-    - name: Output artifact ID
-      run:  echo 'Artifact ID is ${{ steps.artifact-upload-step.outputs.artifact-id }}'
 
   build-windows: 
     runs-on: ${{ matrix.os }}
@@ -126,6 +120,9 @@ jobs:
         cmake -B "${{ github.workspace }}/build"
         -G "Unix Makefiles"
         -DXMRIG_DEPS="$PWD\xmrig-deps\gcc\x64"
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
 
     - name: Build
@@ -135,12 +132,9 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: xmrig_${{ matrix.c_compiler }}-${{ runner.arch }}-${{ runner.os }}
+        name: xmrig_${{ matrix.c_compiler }}-${{ matrix.arch }}-${{ matrix.os }}
         path: ./build
         if-no-files-found: warn
         retention-days: 90
         compression-level: 0
         overwrite: false
-
-    - name: Output artifact ID
-      run:  echo 'Artifact ID is ${{ steps.artifact-upload-step.outputs.artifact-id }}'
