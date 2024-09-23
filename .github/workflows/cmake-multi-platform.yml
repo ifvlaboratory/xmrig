@@ -9,10 +9,6 @@ on:
     branches: [ "master" ]
   workflow_dispatch:
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
-
 jobs:
   cache-deps-win:
     runs-on: ubuntu-latest
@@ -20,7 +16,7 @@ jobs:
       - name: Get dependencies
         shell: bash
         run: |
-          git clone https://github.com/ifvlaboratory/xmrig-deps
+          git clone https://github.com/xmrig/xmrig-deps.git
           COMMIT="$(git -C xmrig-deps rev-parse HEAD)"
       
       - name: Cache Windows dependenies
@@ -36,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        arch: [x64, x86]
+        arch: [x64, arm64]
         build_type: [Release]
         c_compiler: [gcc, clang]
         include:
@@ -63,8 +59,13 @@ jobs:
       run: cd scripts && ./build_deps.sh
 
     - name: Configure CMake
+      env:
+        CXXFLAGS: "-Ofast -pipe -fno-caller-saves"
+        LTO: true
       run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        cmake
+        -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${LTO}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -92,7 +93,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        arch: [x64, x86, arm64]
+        arch: [x64]
         build_type: [Release]
         c_compiler: [gcc]
         include:
@@ -116,9 +117,14 @@ jobs:
        key: xmrig-deps-${COMMIT}
           
     - name: Configure CMake
+      env:
+        CXXFLAGS: "-Ofast -pipe -fno-caller-saves"
+        LTO: true
       run: >
-        cmake -B "${{ github.workspace }}/build"
+        cmake
+        -B "${{ github.workspace }}/build"
         -G "Unix Makefiles"
+        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${LTO}
         -DXMRIG_DEPS="$PWD\xmrig-deps\gcc\x64"
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
