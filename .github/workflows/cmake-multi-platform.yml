@@ -17,13 +17,12 @@ jobs:
         shell: bash
         run: |
           git clone https://github.com/xmrig/xmrig-deps.git
-          COMMIT="$(git -C xmrig-deps rev-parse HEAD)"
       
       - name: Cache Windows dependenies
         uses: actions/cache@v4
         with:
           path: xmrig-deps
-          key: xmrig-deps-${COMMIT}
+          key: xmrig-deps-${{ env.COMMIT }}
 
   build-linux:
     runs-on: ${{ matrix.os }}
@@ -60,6 +59,7 @@ jobs:
 
     - name: Configure CMake
       env:
+        CFLAGS: "-Ofast -pipe -fno-caller-saves"
         CXXFLAGS: "-Ofast -pipe -fno-caller-saves"
         LTO: true
       run: >
@@ -109,15 +109,17 @@ jobs:
       run: |
         choco install git
         git clone https://github.com/ifvlaboratory/xmrig-deps
+        COMMIT="$(git -C xmrig-deps rev-parse HEAD)"
 
     - name: Cache Windows dependenies
       uses: actions/cache@v4
       with:
        path: xmrig-deps
-       key: xmrig-deps-${COMMIT}
+       key: xmrig-deps-${{ env.COMMIT }}
           
     - name: Configure CMake
       env:
+        CFLAGS: "-Ofast -pipe -fno-caller-saves"
         CXXFLAGS: "-Ofast -pipe -fno-caller-saves"
         LTO: true
       run: >
