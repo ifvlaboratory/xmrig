@@ -8,6 +8,20 @@ on:
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
+    inputs:
+      gcc_march:
+        description: 'Set -march for gcc'
+        required: false
+        default: 'generic'
+      gcc_mtune:
+        description: 'Set -mtune for gcc'
+        required: false
+        default: 'generic'
+
+env:
+  CFLAGS: "-Ofast -pipe -fno-caller-saves"
+  CXXFLAGS: "-Ofast -pipe -fno-caller-saves"
+  USE_LTO: true
 
 jobs:
   cache-deps-win:
@@ -17,6 +31,7 @@ jobs:
         shell: bash
         run: |
           git clone https://github.com/xmrig/xmrig-deps.git
+          COMMIT="$(git -C xmrig-deps rev-parse HEAD)"
       
       - name: Cache Windows dependenies
         uses: actions/cache@v4
@@ -58,14 +73,10 @@ jobs:
       run: cd scripts && ./build_deps.sh
 
     - name: Configure CMake
-      env:
-        CFLAGS: "-Ofast -pipe -fno-caller-saves"
-        CXXFLAGS: "-Ofast -pipe -fno-caller-saves"
-        LTO: true
       run: >
         cmake
         -B ${{ steps.strings.outputs.build-output-dir }}
-        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${LTO}
+        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${USE_LTO}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -118,15 +129,11 @@ jobs:
        key: xmrig-deps-${{ env.COMMIT }}
           
     - name: Configure CMake
-      env:
-        CFLAGS: "-Ofast -pipe -fno-caller-saves"
-        CXXFLAGS: "-Ofast -pipe -fno-caller-saves"
-        LTO: true
       run: >
         cmake
         -B "${{ github.workspace }}/build"
         -G "Unix Makefiles"
-        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${LTO}
+        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${USE_LTO}
         -DXMRIG_DEPS="$PWD\xmrig-deps\gcc\x64"
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
